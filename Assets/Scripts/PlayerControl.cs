@@ -8,6 +8,7 @@ public class PlayerControl : MonoBehaviour {
 	public Projectile laser;
 	public float laserVelY;
 	public float firingRate;
+	public float health = 100f;
 		
 	private Vector3 pos;
 	private float xMin;
@@ -32,7 +33,6 @@ public class PlayerControl : MonoBehaviour {
 	void Fire() {
 		Projectile newLaser = Instantiate (laser, this.transform.position, Quaternion.identity) as Projectile;
 		newLaser.rigidbody2D.velocity = new Vector2(0, laserVelY);	
-		newLaser.gameObject.tag = "Player Laser";
 	}
 	
 	void HandleInput() {
@@ -51,5 +51,18 @@ public class PlayerControl : MonoBehaviour {
 		if(Input.GetKeyUp (KeyCode.Space)) {
 			CancelInvoke ("Fire");
 		}
+	}
+	
+	void OnTriggerEnter2D(Collider2D col) {
+		Projectile proj = col.gameObject.GetComponent<Projectile>();
+		TakeHit(proj);
+	}
+	
+	void TakeHit(Projectile proj) {
+		health -= proj.GetDamage();
+		if(health <= 0) {
+			Destroy(gameObject);
+		}
+		proj.Hit();
 	}
 }	

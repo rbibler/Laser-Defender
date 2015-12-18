@@ -9,6 +9,7 @@ public class Enemy : MonoBehaviour {
 	private float timeSinceLastFire = 2.8f;
 	public float minTimeToFire =  .5f;
 	public float maxTimeToFire = 3f;
+	public float projectileDamage = 50f;
 	
 	public void Update() {
 		timeSinceLastFire += Time.deltaTime;
@@ -21,13 +22,11 @@ public class Enemy : MonoBehaviour {
 		Projectile proj = Instantiate (projectile, transform.position, Quaternion.identity) as Projectile;
 		proj.rigidbody2D.velocity = new Vector3(0, initialProjVelocity, 0);
 		timeSinceLastFire = 0;
+		proj.SetDamage(projectileDamage);
 	}
 
 	public void OnTriggerEnter2D(Collider2D col) {
-		print (col.gameObject.tag);
-		if(col.gameObject.tag == "Player Laser") {
-			TakeHit(col.gameObject.GetComponent<Projectile>());
-		}
+		TakeHit(col.gameObject.GetComponent<Projectile>());
 	}
 	
 	private void TakeHit(Projectile laser) {
