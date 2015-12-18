@@ -5,7 +5,7 @@ public class PlayerControl : MonoBehaviour {
 
 	public float xVel;
 	public float padding;
-	public GameObject laser;
+	public Projectile laser;
 	public float laserVelY;
 	public float firingRate;
 		
@@ -30,8 +30,9 @@ public class PlayerControl : MonoBehaviour {
 	}
 
 	void Fire() {
-		GameObject newLaser = Instantiate (laser, this.transform.position, Quaternion.identity) as GameObject;
+		Projectile newLaser = Instantiate (laser, this.transform.position, Quaternion.identity) as Projectile;
 		newLaser.rigidbody2D.velocity = new Vector2(0, laserVelY);	
+		newLaser.gameObject.tag = "Player Laser";
 	}
 	
 	void HandleInput() {
