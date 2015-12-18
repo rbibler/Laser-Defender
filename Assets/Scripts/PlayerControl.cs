@@ -5,6 +5,9 @@ public class PlayerControl : MonoBehaviour {
 
 	public float xVel;
 	public float padding;
+	public GameObject laser;
+	public float laserVelY;
+	public float firingRate;
 		
 	private Vector3 pos;
 	private float xMin;
@@ -25,6 +28,11 @@ public class PlayerControl : MonoBehaviour {
 		HandleInput();
 		this.transform.position = pos;
 	}
+
+	void Fire() {
+		GameObject newLaser = Instantiate (laser, this.transform.position, Quaternion.identity) as GameObject;
+		newLaser.rigidbody2D.velocity = new Vector2(0, laserVelY);	
+	}
 	
 	void HandleInput() {
 		float deltaX = 0;
@@ -36,5 +44,11 @@ public class PlayerControl : MonoBehaviour {
 		deltaX *= Time.deltaTime;
 		pos.x += deltaX;
 		pos.x = Mathf.Clamp (pos.x, xMin, xMax);
+		if(Input.GetKeyDown (KeyCode.Space)) {
+			InvokeRepeating("Fire", 0.000001f, firingRate);
+		}
+		if(Input.GetKeyUp (KeyCode.Space)) {
+			CancelInvoke ("Fire");
+		}
 	}
 }	
