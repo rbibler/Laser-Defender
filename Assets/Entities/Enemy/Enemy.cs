@@ -16,6 +16,11 @@ public class Enemy : MonoBehaviour {
 	public float maxAnimSwitch = 40f;
 	public Animator animator;
 	public bool inPosition = false;
+	public AudioClip boom;
+	public AudioClip laserClip;
+	
+	public int scorePoints = 100;
+	private bool invincible = true;
 
 	void Start() {
 		animator = GetComponent<Animator> ();
@@ -36,6 +41,7 @@ public class Enemy : MonoBehaviour {
 		proj.rigidbody2D.velocity = new Vector3(0, initialProjVelocity, 0);
 		timeSinceLastFire = 0;
 		proj.SetDamage(projectileDamage);
+		AudioSource.PlayClipAtPoint(laserClip, this.transform.position);
 	}
 
 	void CheckForAnimChange() {
@@ -54,6 +60,7 @@ public class Enemy : MonoBehaviour {
 
 	public void InPosition() {
 		inPosition = true;
+		invincible = false;
 	}
 
 	public void OnTriggerEnter2D(Collider2D col) {
@@ -61,6 +68,9 @@ public class Enemy : MonoBehaviour {
 	}
 	
 	private void TakeHit(Projectile laser) {
+		if(invincible) {
+			return;
+		}
 		health -= laser.GetDamage ();
 		CheckHealth();
 		laser.Hit();
@@ -69,6 +79,8 @@ public class Enemy : MonoBehaviour {
 	private void CheckHealth() {
 		if(health <= 0) {
 			Destroy (gameObject);
+			GameObject.FindObjectOfType<ScoreKeeper>().UpdateScore(scorePoints);
+			AudioSource.PlayClipAtPoint(boom, this.transform.position);
 		}
 	}
 }

@@ -9,11 +9,17 @@ public class PlayerControl : MonoBehaviour {
 	public float laserVelY;
 	public float firingRate;
 	public float health = 100f;
-		
+	public float aliveMultiplier = 13.0f;
+
+	public AudioClip fireClip;
+						
 	private Vector3 pos;
 	private Quaternion rotation;
 	private float xMin;
 	private float xMax;
+
+	
+	
 	
 	// Use this for initialization
 	void Start () {
@@ -30,6 +36,7 @@ public class PlayerControl : MonoBehaviour {
 	void Update () {
 		HandleInput();
 		this.transform.position = pos;
+		GameObject.FindObjectOfType<ScoreKeeper>().UpdateScore(Time.deltaTime * aliveMultiplier);
 
 	}
 
@@ -38,6 +45,7 @@ public class PlayerControl : MonoBehaviour {
 		pos.z = .25f;
 		Projectile newLaser = Instantiate (laser, pos, Quaternion.identity) as Projectile;
 		newLaser.rigidbody2D.velocity = new Vector2(0, laserVelY);	
+		AudioSource.PlayClipAtPoint(fireClip, transform.position);
 	}
 	
 	void HandleInput() {
