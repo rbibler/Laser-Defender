@@ -9,6 +9,7 @@ public class PlayerControl : MonoBehaviour {
 	public float laserVelY;
 	public float firingRate;
 	public float health = 100f;
+	public float maxHealth = 1000;
 	public float aliveMultiplier = 13.0f;
 
 	public AudioClip fireClip;
@@ -17,7 +18,8 @@ public class PlayerControl : MonoBehaviour {
 	private Quaternion rotation;
 	private float xMin;
 	private float xMax;
-
+	private bool inPosition = false;
+	private Animator animator;
 	
 	
 	
@@ -30,6 +32,7 @@ public class PlayerControl : MonoBehaviour {
 		xMax = Camera.main.ViewportToWorldPoint (new Vector3(1, 0, distance)).x;
 		xMin += padding;
 		xMax -= padding;
+		animator = GetComponent<Animator>();
 	}
 	
 	// Update is called once per frame
@@ -41,14 +44,18 @@ public class PlayerControl : MonoBehaviour {
 	}
 
 	void Fire() {
-		Vector3 pos = this.transform.position;
-		pos.z = .25f;
+		if(!inPosition) {
+			return;
+		}
 		Projectile newLaser = Instantiate (laser, pos, Quaternion.identity) as Projectile;
 		newLaser.rigidbody2D.velocity = new Vector2(0, laserVelY);	
 		AudioSource.PlayClipAtPoint(fireClip, transform.position);
 	}
 	
 	void HandleInput() {
+		if(!inPosition) {
+			return;
+		}
 		float deltaX = 0;
 		if (Input.GetKey (KeyCode.LeftArrow)) {
 			deltaX = -xVel;
@@ -72,10 +79,35 @@ public class PlayerControl : MonoBehaviour {
 	}
 	
 	void TakeHit(Projectile proj) {
+		if(!inPosition) {
+			return;
+		}
 		health -= proj.GetDamage();
+		GameObject.FindObjectOfType<HealthBar>().UpdateHealth(health / maxHealth);
 		if(health <= 0) {
-			Destroy(gameObject);
+			//Destroy(gameObject);
+			animator.SetBool ("isDead", true);
+			animator.updateMode = AnimatorUpdateMode.Normal;
+			GameObject.FindObjectOfType<UILifeManager>().RemoveLife();
+			GameObject.FindObjectOfType<EnemySpawner>().ClearAll();
 		}
 		proj.Hit();
+	}
+	
+	public void InPosition() {
+		animator.updateMode = AnimatorUpdateMode.AnimatePhysics;
+		inPosition = true;
+		health = 0;
+		ResetHealthBar();
+	}
+	
+	private void ResetHealthBar() {
+		health += maxHealth / 10;
+		GameObject.FindObjectOfType<HealthBar>().UpdateHealth(health/maxHealth);
+		InvokeRepeating("ResetHealthBar", .1f, 1f);
+		if(health >= maxHealth) {
+			CancelInvoke();
+			GameObject.FindObjectOfType<EnemySpawner>().StartSpawning();
+		}
 	}
 }	

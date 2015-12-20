@@ -11,14 +11,24 @@ public class EnemySpawner : MonoBehaviour {
 	private float xMin;
 	private float xMax;
 	private bool movingRight = true;
-
+	private bool spawned = false;
 
 	// Use this for initialization
 	void Start () {
-		SpawnUntilFull();
 		float distance = this.transform.position.z - Camera.main.transform.position.z;
 		xMin = Camera.main.ViewportToWorldPoint (new Vector3 (0, 0, distance)).x;
 		xMax = Camera.main.ViewportToWorldPoint (new Vector3 (1, 0, distance)).x;
+	}
+	
+	public void StartSpawning() {
+		SpawnUntilFull();
+	}
+	
+	public void ClearAll() {
+		spawned = false;
+		foreach(Transform child in transform) {
+			Destroy (child.gameObject);
+		}
 	}
 	
 	// Update is called once per frame
@@ -30,6 +40,9 @@ public class EnemySpawner : MonoBehaviour {
 	}
 	
 	bool AllAreEnemiesDead() {
+		if(!spawned) {
+			return false;
+		}
 		foreach(Transform childPositionGameObject in transform) {
 			if(childPositionGameObject.childCount > 0) {
 				return false;
@@ -55,6 +68,7 @@ public class EnemySpawner : MonoBehaviour {
 	}
 	
 	void SpawnUntilFull() {
+		spawned = true;
 		Transform nextFree = NextFreePosition();
 		if(nextFree) {
 			SpawnEnemyAtTransform(nextFree);
