@@ -7,17 +7,22 @@ public class EnemySpawner : MonoBehaviour {
 	public float width = 10;
 	public float height = 5;
 	public float xVel = 1;
+	public WaveNotice noticeText;
 
 	private float xMin;
 	private float xMax;
 	private bool movingRight = true;
 	private bool spawned = false;
+	private bool spawnInvoked;
+	private int totalSpawned;
+	private int maxInFormation;
 
 	// Use this for initialization
 	void Start () {
 		float distance = this.transform.position.z - Camera.main.transform.position.z;
 		xMin = Camera.main.ViewportToWorldPoint (new Vector3 (0, 0, distance)).x;
 		xMax = Camera.main.ViewportToWorldPoint (new Vector3 (1, 0, distance)).x;
+		maxInFormation = transform.childCount;
 	}
 	
 	public void StartSpawning() {
@@ -34,8 +39,11 @@ public class EnemySpawner : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		Move();
-		if(AllAreEnemiesDead()) {
-			SpawnUntilFull();
+		if(AllAreEnemiesDead() && !spawnInvoked) {
+			spawnInvoked = true;
+			totalSpawned = 0;
+			noticeText.StartAnimation();
+			Invoke ("SpawnUntilFull", 2.0f);
 		}
 	}
 	
@@ -70,14 +78,13 @@ public class EnemySpawner : MonoBehaviour {
 	void SpawnUntilFull() {
 		spawned = true;
 		Transform nextFree = NextFreePosition();
-		if(nextFree) {
+		if(nextFree && totalSpawned < maxInFormation) {
 			SpawnEnemyAtTransform(nextFree);
 			Invoke("SpawnUntilFull", .5f);
 		} else {
+			spawnInvoked = false;
 			CancelInvoke();
 		}
-		
-		
 	}
 	
 	Transform NextFreePosition() {
@@ -102,6 +109,7 @@ public class EnemySpawner : MonoBehaviour {
 		if(!spawnTransform) {
 			return;
 		}
+		totalSpawned++;
 		GameObject enemy = Instantiate (enemyPrefab, spawnTransform.position, new Quaternion(0,0,0,0)) as GameObject;
 		enemy.transform.parent = spawnTransform;		
 	}

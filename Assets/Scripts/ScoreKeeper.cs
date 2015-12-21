@@ -4,7 +4,7 @@ using System.Collections;
 
 public class ScoreKeeper : MonoBehaviour {
 
-	public float score = 0;
+	public static float score = 0;
 	public Text scoreText;
 	
 	void Start() {

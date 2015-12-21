@@ -10,8 +10,8 @@ public class Projectile : MonoBehaviour {
 		this.damage = damage;
 	}
 	
-	public float GetDamage() {
-		return damage;
+	public float GetDamage(Vector3 position) {
+		return damage * Vector3.Distance (transform.position, position);
 	}
 	
 	public void Hit() {

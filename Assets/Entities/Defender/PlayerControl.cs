@@ -6,13 +6,21 @@ public class PlayerControl : MonoBehaviour {
 	public float xVel;
 	public float padding;
 	public Projectile laser;
+	public BigBoom bigBoom;
 	public float laserVelY;
 	public float firingRate;
 	public float health = 100f;
 	public float maxHealth = 1000;
 	public float aliveMultiplier = 13.0f;
+	public float healthRechargeRate;
+	public float boomTimeRequired;
+
+	public ImageBar healthBar;
+	public ImageBar powerUpBar;
 
 	public AudioClip fireClip;
+	public AudioClip exploadClip;
+	public BGAudioPlayer musicPlayer;
 						
 	private Vector3 pos;
 	private Quaternion rotation;
@@ -20,6 +28,8 @@ public class PlayerControl : MonoBehaviour {
 	private float xMax;
 	private bool inPosition = false;
 	private Animator animator;
+	private LevelManager levelManager;
+	private float boomTime;
 	
 	
 	
@@ -33,14 +43,21 @@ public class PlayerControl : MonoBehaviour {
 		xMin += padding;
 		xMax -= padding;
 		animator = GetComponent<Animator>();
+		levelManager = GameObject.FindObjectOfType<LevelManager> ();
+		BGAudioPlayer.instance.RampToLoudness ();
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		HandleInput();
+		if (!inPosition) {
+			return;
+		}
+		HandleInput ();
+		RechargeHealth ();
 		this.transform.position = pos;
-		GameObject.FindObjectOfType<ScoreKeeper>().UpdateScore(Time.deltaTime * aliveMultiplier);
-
+		GameObject.FindObjectOfType<ScoreKeeper> ().UpdateScore (Time.deltaTime * aliveMultiplier);
+		powerUpBar.UpdateImage (boomTime / boomTimeRequired);
+		
 	}
 
 	void Fire() {
@@ -65,49 +82,74 @@ public class PlayerControl : MonoBehaviour {
 		deltaX *= Time.deltaTime;
 		pos.x += deltaX;
 		pos.x = Mathf.Clamp (pos.x, xMin, xMax);
-		if(Input.GetKeyDown (KeyCode.Space)) {
-			InvokeRepeating("Fire", 0.000001f, firingRate);
+		if (Input.GetKeyUp (KeyCode.Space)) {
+			if(boomTime >= boomTimeRequired) {
+				Boom();
+			} else {
+				Fire ();
+			}
+			boomTime = 0;
+		} else if (Input.GetKey (KeyCode.Space)) {
+			boomTime += Time.deltaTime;
 		}
 		if(Input.GetKeyUp (KeyCode.Space)) {
 			CancelInvoke ("Fire");
 		}
 	}
 	
+	public void TakeHit(Projectile proj) {
+		if(!inPosition) {
+			return;
+		}
+		health -= proj.GetDamage(transform.position);
+		healthBar.UpdateImage(health / maxHealth);
+		if(health <= 0) {
+			Death();
+		}
+		proj.Hit();
+	}
+
 	void OnTriggerEnter2D(Collider2D col) {
 		Projectile proj = col.gameObject.GetComponent<Projectile>();
 		TakeHit(proj);
 	}
-	
-	void TakeHit(Projectile proj) {
-		if(!inPosition) {
-			return;
-		}
-		health -= proj.GetDamage();
-		GameObject.FindObjectOfType<HealthBar>().UpdateHealth(health / maxHealth);
-		if(health <= 0) {
-			//Destroy(gameObject);
-			animator.SetBool ("isDead", true);
-			animator.updateMode = AnimatorUpdateMode.Normal;
-			GameObject.FindObjectOfType<UILifeManager>().RemoveLife();
-			GameObject.FindObjectOfType<EnemySpawner>().ClearAll();
-		}
-		proj.Hit();
+
+	void Death() {
+		GameObject.FindObjectOfType<UILifeManager>().RemoveLife();
+		levelManager.FadeToBlack ();
+		Destroy (gameObject);
+		AudioSource.PlayClipAtPoint (exploadClip, pos);
+		BGAudioPlayer.instance.FadeToQuiteness ();
 	}
 	
-	public void InPosition() {
-		animator.updateMode = AnimatorUpdateMode.AnimatePhysics;
+	public void EndArrivalAnimation() {
 		inPosition = true;
 		health = 0;
 		ResetHealthBar();
+		animator.enabled = false;
 	}
 	
 	private void ResetHealthBar() {
 		health += maxHealth / 10;
-		GameObject.FindObjectOfType<HealthBar>().UpdateHealth(health/maxHealth);
-		InvokeRepeating("ResetHealthBar", .1f, 1f);
+		healthBar.UpdateImage(health/maxHealth);
+		InvokeRepeating("ResetHealthBar", .08f, .25f);
 		if(health >= maxHealth) {
 			CancelInvoke();
 			GameObject.FindObjectOfType<EnemySpawner>().StartSpawning();
 		}
+	}
+
+	private void RechargeHealth() {
+		health += Time.deltaTime * healthRechargeRate;
+		if (health > maxHealth) {
+			health = maxHealth;
+		}
+		healthBar.UpdateImage(health/maxHealth);
+	}
+
+	private void Boom() {
+		BigBoom boom = Instantiate (bigBoom, pos, Quaternion.identity) as BigBoom;
+		boom.rigidbody2D.velocity = new Vector2(0, laserVelY);	
+		AudioSource.PlayClipAtPoint(fireClip, transform.position);
 	}
 }	

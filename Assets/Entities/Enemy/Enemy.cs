@@ -71,7 +71,7 @@ public class Enemy : MonoBehaviour {
 		if(invincible) {
 			return;
 		}
-		health -= laser.GetDamage ();
+		health -= laser.GetDamage (transform.position);
 		CheckHealth();
 		laser.Hit();
 	}

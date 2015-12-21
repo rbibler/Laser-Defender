@@ -13,4 +13,18 @@ public class LevelManager : MonoBehaviour {
 		Application.Quit ();
 	}
 
+	public void LoadGame() {
+		Application.LoadLevel ("Game");
+	}
+
+	public void FadeToBlack() {
+		Invoke ("LoadTheDarkness", 1.0f);
+		GameObject.FindObjectOfType<Fader> ().StartFadeOut ();
+
+	}
+
+	void LoadTheDarkness() {
+		Application.LoadLevel ("Lose Screen");
+	}
+
 }
