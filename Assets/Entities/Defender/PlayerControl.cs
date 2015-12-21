@@ -30,6 +30,8 @@ public class PlayerControl : MonoBehaviour {
 	private Animator animator;
 	private LevelManager levelManager;
 	private float boomTime;
+	private float timeKeyDown;
+	private float keyDownRequired = .1f;
 	
 	
 	
@@ -89,11 +91,13 @@ public class PlayerControl : MonoBehaviour {
 				Fire ();
 			}
 			boomTime = 0;
+			timeKeyDown = -1;
+		} else if(Input.GetKeyDown (KeyCode.Space)) {
+			timeKeyDown = Time.timeSinceLevelLoad;
 		} else if (Input.GetKey (KeyCode.Space)) {
-			boomTime += Time.deltaTime;
-		}
-		if(Input.GetKeyUp (KeyCode.Space)) {
-			CancelInvoke ("Fire");
+			if(Time.timeSinceLevelLoad - timeKeyDown >= keyDownRequired) {
+				boomTime += Time.deltaTime;
+			}
 		}
 	}
 	
@@ -120,6 +124,21 @@ public class PlayerControl : MonoBehaviour {
 		Destroy (gameObject);
 		AudioSource.PlayClipAtPoint (exploadClip, pos);
 		BGAudioPlayer.instance.FadeToQuiteness ();
+	}
+	
+	public void AddHealth(float healthPercentToAdd) {
+		print ("In addhealth");
+		float targetHealth = health + (maxHealth * healthPercentToAdd);
+		StartCoroutine(FillUpHealthBar(targetHealth, .01f, .01f));
+	}
+	
+	private IEnumerator FillUpHealthBar(float targetHealth, float fillRate, float fillSpeed) {
+		health += maxHealth * fillRate;
+		print ("Filling health. At: " + health + " Target: " + targetHealth);
+		if(health < targetHealth) {
+			yield return new WaitForSeconds(fillSpeed);
+			StartCoroutine(FillUpHealthBar(targetHealth, fillRate, fillSpeed));
+		}
 	}
 	
 	public void EndArrivalAnimation() {

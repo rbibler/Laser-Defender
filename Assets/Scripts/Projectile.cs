@@ -14,8 +14,12 @@ public class Projectile : MonoBehaviour {
 		return damage * Vector3.Distance (transform.position, position);
 	}
 	
-	public void Hit() {
+	public virtual void Hit() {
 		Destroy(gameObject);
+	}
+	
+	void OnDrawGizmos() {
+		Gizmos.DrawWireSphere(gameObject.collider2D.transform.position, this.gameObject.collider2D.bounds.size.x / 2);
 	}
 	
 }

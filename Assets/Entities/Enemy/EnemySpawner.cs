@@ -16,7 +16,7 @@ public class EnemySpawner : MonoBehaviour {
 	private bool spawnInvoked;
 	private int totalSpawned;
 	private int maxInFormation;
-
+	private static int waveCount;
 	// Use this for initialization
 	void Start () {
 		float distance = this.transform.position.z - Camera.main.transform.position.z;
@@ -42,7 +42,11 @@ public class EnemySpawner : MonoBehaviour {
 		if(AllAreEnemiesDead() && !spawnInvoked) {
 			spawnInvoked = true;
 			totalSpawned = 0;
+			waveCount++;
 			noticeText.StartAnimation();
+			GameObject.FindObjectOfType<ScoreKeeper>().UpdateScore(waveCount * 400);
+			print ("About to fill health");
+			GameObject.FindObjectOfType<PlayerControl>().AddHealth(.25f);
 			Invoke ("SpawnUntilFull", 2.0f);
 		}
 	}
