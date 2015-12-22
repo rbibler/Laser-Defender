@@ -32,6 +32,7 @@ public class PlayerControl : MonoBehaviour {
 	private float boomTime;
 	private float timeKeyDown;
 	private float keyDownRequired = .1f;
+	private float deltaX;
 	
 	
 	
@@ -75,15 +76,11 @@ public class PlayerControl : MonoBehaviour {
 		if(!inPosition) {
 			return;
 		}
-		float deltaX = 0;
 		if (Input.GetKey (KeyCode.LeftArrow)) {
-			deltaX = -xVel;
+			MoveLeft ();
 		} else if (Input.GetKey (KeyCode.RightArrow)) {
-			deltaX = xVel;
+			MoveRight ();
 		}
-		deltaX *= Time.deltaTime;
-		pos.x += deltaX;
-		pos.x = Mathf.Clamp (pos.x, xMin, xMax);
 		if (Input.GetKeyUp (KeyCode.Space)) {
 			if(boomTime >= boomTimeRequired) {
 				Boom();
@@ -99,6 +96,22 @@ public class PlayerControl : MonoBehaviour {
 				boomTime += Time.deltaTime;
 			}
 		}
+	}
+
+	public void MoveLeft() {
+		deltaX = -xVel;
+		UpdatePos ();
+	}
+
+	public void MoveRight() {
+		deltaX = xVel;
+		UpdatePos ();
+	}
+
+	void UpdatePos() {
+		deltaX *= Time.deltaTime;
+		pos.x += deltaX;
+		pos.x = Mathf.Clamp (pos.x, xMin, xMax);	
 	}
 	
 	public void TakeHit(Projectile proj) {
